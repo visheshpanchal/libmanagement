@@ -1,6 +1,7 @@
 import requests
 from django.contrib.auth import authenticate, login, logout
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,7 +17,9 @@ class PDFView(ViewSet):
     serializer_class = PDFSerializer
 
     def list(self, request):
-        serialize = self.serializer_class(self.queryset, many=True, context={"request": request})
+        serialize = self.serializer_class(
+            self.queryset, many=True, context={"request": request}
+        )
 
         return Response(serialize.data)
 
@@ -34,12 +37,15 @@ class PDFView(ViewSet):
         responses=PDFSerializer,
     )
     def create(self, request):
-        serialize = self.serializer_class(data=request.data, context={"request": request})
+
+        serialize = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
 
         if serialize.is_valid():
             serialize.save()
 
-            return Response(serialize.data)
+            return Response(serialize.data, status=status.HTTP_201_CREATED)
 
         return Response(serialize.errors)
 
@@ -69,6 +75,8 @@ class PDFView(ViewSet):
         },
         responses=PDFSerializer,
     )
+
+    ## This is patch request
     def partial_update(self, request, pk=None):
 
         # Getting Query in data
@@ -85,27 +93,28 @@ class PDFView(ViewSet):
         if serialize.is_valid():
             serialize.save()
 
-            return Response(serialize.data)
+            return Response(serialize.data, status=status.HTTP_204_NO_CONTENT)
 
         return Response(serialize.errors)
 
-    ## Delete Test in Unix
+    # Delete Test in Unix
 
-    # def destroy(self, request, pk=None):
-    #     ## For Debug purpose not for production ready
-    #     # Getting Query in data
-    #     try:
-    #         query = PDFModel.objects.get(pk=pk)
-    #     except Exception:
-    #         data = {"message": "Not Found"}
-    #         return Response(data)
+    def destroy(self, request, pk=None):
+        ## For Debug purpose not for production ready
+        # Getting Query in data
+        try:
+            query = PDFModel.objects.get(pk=pk)
+        except Exception:
+            data = {"message": "Not Found"}
+            return Response(data)
 
-    #     file_name = query.file.name
-    #     query.file.delete()
-    #     query.delete()
+        file_name = query.file.name
+        query.file.delete()
+        query.delete()
 
-    #     data = {"file_name": file_name, "message": "File successfully deleted."}
-    #     return Response(data=data)
+        data = {"file_name": file_name, "message": "File successfully deleted."}
+        return Response(data=data, status=status.HTTP_204_NO_CONTENT)
+
     def get_permissions(self):
 
         if self.action in ("list", "retrieve"):
@@ -129,7 +138,6 @@ class UserLogin(APIView):
         }
     )
     def post(self, request):
-
         username = request.POST["username"]
         password = request.POST["password"]
 
@@ -138,7 +146,11 @@ class UserLogin(APIView):
         if user:
             login(request, user)
             session_id = request.session._session_key
-            data = {"username": user.username, "message": "Login Done", "session": session_id}
+            data = {
+                "username": user.username,
+                "message": "Login Done",
+                "session": session_id,
+            }
 
             return Response(data)
 

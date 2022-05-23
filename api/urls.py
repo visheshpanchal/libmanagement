@@ -6,9 +6,10 @@ from .views import PDFView, UserLogin
 
 router = DefaultRouter()
 
-router.register(r"pdf", PDFView, basename="pdf")
+router.register(r"pdf", PDFView, basename="base_pdf")
 
+app_name = "api"
 urlpatterns = [
-    path("", include(router.urls)),
+    path("", include(router.urls), name="pdf"),
     path("superuser/login/", UserLogin.as_view(), name="login"),
 ]
