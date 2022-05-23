@@ -17,11 +17,16 @@ class PDFView(ViewSet):
     serializer_class = PDFSerializer
 
     def list(self, request):
+
         serialize = self.serializer_class(
             self.queryset, many=True, context={"request": request}
         )
 
-        return Response(serialize.data)
+        if serialize.data:
+
+            return Response(serialize.data)
+
+        return Response("No Data Found")
 
     @extend_schema(
         request={
